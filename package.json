@@ -31,7 +31,8 @@
     "glob": "^4.0.5"
   },
   "keywords": [
-    "ember-addon"
+    "ember-addon",
+    "game-of-life"
   ],
   "ember-addon": {
     "configPath": "tests/dummy/config"
