@@ -1,6 +1,20 @@
+import Cell from './cell';
+
 function Colony () {
 
-  this.agar = {}
+
+  // * the agar will know about all live cells and their neighbors
+  // * on each tick the universe will go through all cells in the 
+  //   agar (alive and dead) and a new state of each will be added
+  //   to a new agar
+  //     - it is important to make a new agar so changes don't affect 
+  //       the old state as the new state is being created
+  // * if a cell does not have any live neighbors it should be deleted
+  // * afterwards the new agar will replace the old agar
+  // * at the end of the tick all live cells will be collected by 
+  //   the universe and passed into the next tick of the graph
+  this.agar = {};
+  this.liveCells = {};
 
   this.allIds = function () {
     return Object.keys(this.agar);
@@ -8,58 +22,57 @@ function Colony () {
 
   this.seedMe = function (seed) {
     var colony = this
-    colony.agar = {}
+    var agar = {}
     seed.forEach( function (cell) {
-      colony.agar[cell.id] = cell
+      cell.updateNeighboringCells(agar);
+      cell.currentStatus = 1;
+      agar[cell.id] = cell
     });
-  }
 
-  this.countLiveNeighbors = function (cell) {
-    var ids = this.allIds()
-    var count = 0
+    Object.keys(agar).forEach(function (id) {
+      agar = colony.addNeighborsToAgarIfNew(agar[id].neighboringCells, agar);
+    });
 
-    cell.block().forEach( function (neighbor) {
-      var isAlive = ids.indexOf(neighbor.id) != -1;
-      var isNotSelf = (cell.id != neighbor.id);
-      if (isAlive && isNotSelf) {
-        count = count + 1;
+    this.agar = agar;
+  };
+
+  this.moveThroughTheGeneration = function () {
+    var cell;
+    var _this = this;
+    var thisGen = this.agar;
+    var nextGen = {};
+    this.liveCells = {};
+
+    Object.keys(thisGen).forEach(function (id) {
+      var oldCell = thisGen[id];
+      
+      var newCell = new Cell(oldCell.x, oldCell.y);
+      newCell.currentStatus = oldCell.currentStatus
+      newCell.update(thisGen);
+      
+      nextGen[id] = newCell;
+      if (newCell.currentStatus === 1) {
+        _this.liveCells[newCell.id] = newCell;
+      }
+
+      if (newCell.neighboringCellsCount > 1) {
+        nextGen = _this.addNeighborsToAgarIfNew(newCell.neighboringCells, nextGen);        
       }
     });
-    return count;
-  }
+    console.log(nextGen)
+    return nextGen;
+  };
 
-  this.findSurvivors = function () {
-    var colony = this;
-    var ids = Object.keys(colony.agar);
-    var survive = []
-    ids.forEach(function (id) {
-      var cell = colony.agar[id];
-      var neighborCount = colony.countLiveNeighbors(cell);
-      if (neighborCount >= 2 && neighborCount <= 3) {
-        survive.push(colony.agar[id]);
+  this.addNeighborsToAgarIfNew = function (neighbors, nextGen) {
+    Object.keys(neighbors).forEach( function (id) {
+      if (!nextGen[id]) {
+        nextGen[id] = neighbors[id];  
       }
     });
-    return survive;
-  }
 
-  this.reproduce = function () {
-    var colony = this;
-    var ids = Object.keys(this.agar);
-    var babies = []
-    ids.forEach(function (id) {
-      colony.agar[id].block().forEach(function (c) {
+    return nextGen;
+  };
 
-        var isNotAlreadyAlive = ids.indexOf(c.id) == -1;
-        var hasThreeNeighbors = colony.countLiveNeighbors(c) == 3;
-        var isNotAlreadyBorn  = babies.map(function (b) {return b.id}).indexOf(c.id) == -1
-
-        if (hasThreeNeighbors && isNotAlreadyAlive && isNotAlreadyBorn) {
-          babies.push(c);
-        }
-      });
-    });
-    return babies
-  }
 }
 
 export default Colony;

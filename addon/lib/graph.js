@@ -15,7 +15,8 @@ function Graph (seed) {
 
   var stage = d3.select('.stage').append('svg')
     .attr('width', stageWidth)
-    .attr('height', stageHeight);
+    .attr('height', stageHeight)
+    .style('background', 'white');
 
   this.cull = function (survivingCells) {
     var actors = stage.selectAll('circle')
@@ -34,7 +35,7 @@ function Graph (seed) {
       .attr('r', cellRadius)
       .attr('cx', function (d) { return centerX + (d.x * (cellRadius * 2)) })
       .attr('cy', function (d) { return centerY + (d.y * (cellRadius * 2)) })
-      .style('fill', 'black');
+      .style('fill', '#E5E5E5');
   }
 
   this.findSurvivingCells = function (cells) {
@@ -55,7 +56,7 @@ function Graph (seed) {
     this.breed(getValues(cells));
     this.parentGeneration = survivors
   }
+
 }
 
 export default Graph;
-
