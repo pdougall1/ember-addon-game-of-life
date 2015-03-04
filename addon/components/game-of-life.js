@@ -18,8 +18,14 @@ import Creator from '../lib/creator';
 export default Ember.Component.extend({
 	classNames: ['stage'],
 
+  defaultOptions: {
+    maxRand: 10,
+    seedCount: 100
+  },
+
   seeds: function () {
-  	return this.seed(this.get('options.seedCount'));
+    var options = $.extend(this.get('defaultOptions'), this.get('options'));
+  	return this.seed(options.seedCount);
   }.property('options.seedCount', 'options.maxRand'),
 
   didInsertElement: function() {
@@ -37,7 +43,8 @@ export default Ember.Component.extend({
   },
 
   randomNum: function () {
-    var n = Math.floor((Math.random() * this.get('options.maxRand')) + 1);
+    var options = $.extend(this.get('defaultOptions'), this.get('options'));
+    var n = Math.floor((Math.random() * options.maxRand) + 1);
     if (Math.random() <= 0.5) { n = n * -1; } // make n negative ~half the time
     return n;
   }
